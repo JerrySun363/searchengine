@@ -57,6 +57,7 @@ public class QryopAnd extends Qryop {
           rDoc++;
           iDoc++;
         } else {
+          
           result.docScores.scores.remove(rDoc);
         }
       }

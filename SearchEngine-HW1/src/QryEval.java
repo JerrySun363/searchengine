@@ -88,6 +88,7 @@ public class QryEval {
     // 
     // Modify me so that you read queries from a file, parse it, and form the query tree
     // automatically.
+    QueryParser qp= new QueryParser();
     printResults("#AND (aparagus broccoli cauliflower #SYN(peapods peas))", (new QryopAnd(
         new QryopTerm(tokenizeQuery("asparagus")[0]),
         new QryopTerm(tokenizeQuery("broccoli")[0]),
@@ -95,6 +96,11 @@ public class QryEval {
         new QryopSyn(
             new QryopTerm(tokenizeQuery("peapods")[0]), 
             new QryopTerm(tokenizeQuery("peas")[0])))).evaluate());
+    String query = "#AND (aparagus broccoli cauliflower #SYN(peapods peas))";
+    qp.setQuery(query);
+    
+    printResults("#AND (aparagus broccoli cauliflower #SYN(peapods peas))", qp.parse().evaluate());
+    
 
     printResults("asparagus", (new QryopScore(
         new QryopTerm(tokenizeQuery("asparagus")[0]))).evaluate());
