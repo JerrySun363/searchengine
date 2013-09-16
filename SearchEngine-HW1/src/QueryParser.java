@@ -53,8 +53,14 @@ public class QueryParser {
           next = new QryopSyn();
         } else if (token.equals("#OR")) {
           next = new QryopOr();
-        } else if (token.contains("#NEAR")) {
-          next = new QryopNear();
+          
+        }/*else if(token.equals("#SCORE")){
+          next = new QryopScore(); 
+        }*/
+        else if (token.contains("#NEAR")) {
+          String[] paras= token.split("/");
+          System.out.println(paras[1]);
+          next = new QryopNear(Integer.parseInt(paras[1]));
         }
         if (isStart) {
           oprator = next;

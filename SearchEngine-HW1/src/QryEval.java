@@ -113,11 +113,11 @@ public class QryEval {
      * } while (queryReader.hasNext() );
      */
 
-    String query = "#OR(asparagus broccoli)";
+    String query = "#NEAR/800(asparagus broccoli)";
     qp.setQuery(query);
     Qryop test0 = qp.parse();
     //formatPrintResults("test0", test0.evaluate());
-    printResults("test0", test0.evaluate());
+    printResults("test0", new QryopScore(test0).evaluate());
     out.println("------------------------------------");
 
     query = "#AND(asparagus broccoli)";
@@ -126,6 +126,7 @@ public class QryEval {
     formatPrintResults("test1", test.evaluate());
     printResults("test1", test.evaluate());
     out.println("------------------------------------");
+    
     qp.setQuery("#AND(asparagus)");
     Qryop test2 = qp.parse();
     //formatPrintResults("test2", test2.evaluate());

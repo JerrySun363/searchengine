@@ -13,6 +13,13 @@ public class QryopScore extends Qryop {
     this.args.add(q);
   }
 
+ /* public QryopScore(Qryop... q) {
+    for(int i=0;i<q.length;i++){
+      this.args.add(q[i]);
+    }
+  }*/
+  
+  
   /**
    * Evaluate the query operator.
    */
