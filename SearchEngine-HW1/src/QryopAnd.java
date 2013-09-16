@@ -54,6 +54,11 @@ public class QryopAnd extends Qryop {
         // If the rDoc document appears in both lists, keep it, otherwise discard it.
         if ((iDoc < iResult.docScores.scores.size())
             && (result.docScores.getDocid(rDoc) == iResult.docScores.getDocid(iDoc))) {
+          if(QryEval.isRanked){
+             result.docScores.setDocidScore(rDoc, Math.min(
+                     result.docScores.getDocidScore(rDoc), 
+                     iResult.docScores.getDocidScore(iDoc)));
+          }
           rDoc++;
           iDoc++;
         } else {

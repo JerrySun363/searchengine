@@ -71,10 +71,15 @@ public class QueryParser {
         String[] analyzed = QryEval.tokenizeQuery(token);
         if (analyzed.length >= 1) {
           if (oprator == null) {
-            oprator = new QryopOr();
+            oprator = new QryopOr();//set default to Or oprator.
           }
-          oprator.args.add(new QryopTerm(analyzed[0]));
-          System.out.println("I've add " + token);
+          if(analyzed[0].contains(".")){
+            String[] newTerm =  analyzed[0].split(".");
+            //if the query specifies the fields to run the query.
+            oprator.args.add(new QryopTerm(newTerm[0],newTerm[1]));
+          }else
+            oprator.args.add(new QryopTerm(analyzed[0]));
+         //System.out.println("I've add " + token); debug information.
         }
         continue;
       }
@@ -84,7 +89,7 @@ public class QueryParser {
 
   }
 
-  public static void main(String args[]) {
+  /*public static void main(String args[]) {
     QueryParser test = new QueryParser("test1 #AND(test2 test3) #OR(test4 test5) test6");
     try {
       Qryop ops = test.parse();
@@ -99,6 +104,6 @@ public class QueryParser {
       e.printStackTrace();
     }
 
-  }
+  }*/
 
 }

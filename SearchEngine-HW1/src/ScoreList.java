@@ -37,4 +37,9 @@ public class ScoreList {
     return this.scores.get(n).score;
   }
 
+  public void setDocidScore(int n, float score){
+     this.scores.get(n).score = score; 
+  }
+  
+  
 }
