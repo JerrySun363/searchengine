@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.util.Vector;
 
@@ -24,13 +25,12 @@ public class QryopNear extends Qryop {
 
   @Override
   public QryResult evaluate() throws IOException {
-    // TODO test the rightness of the code.
     /*
      * Starts with the first operator to have the result.
      */
     Qryop impliedQryOp = args.get(0);
     QryResult rResult = impliedQryOp.evaluate();
-    rResult.invertedList.print();
+    //rResult.invertedList.print();
 
     for (int i = 1; i < args.size(); i++) {
       // InvList newList = new InvList();
@@ -50,9 +50,6 @@ public class QryopNear extends Qryop {
           rIndex++;
         } else if (rDoc > iDoc) {
           int tf = iResult.invertedList.postings.get(iIndex).tf;
-          //iResult.invertedList.df--;
-          //iResult.invertedList.ctf -= tf;
-          //iResult.invertedList.postings.remove(iIndex);
           iIndex++;
         } else {
           Vector<Integer> rList = rResult.invertedList.postings.get(rIndex).positions;
@@ -64,16 +61,12 @@ public class QryopNear extends Qryop {
 
             int difference = iList.get(iL) - rList.get(rL);
             if (difference < 0) {
-              // iList.remove(iL);
               iL++;
             } else if (difference <= distance) {
-              // TODO
               matches.positions.add(iList.get(iL));
               iL++;
-
             } else {
               rL++;
-
             }
           }
           if(!matches.positions.isEmpty()){
@@ -89,8 +82,7 @@ public class QryopNear extends Qryop {
         
       }
       rResult.invertedList = newList;
-      // iResult.invertedList.print();
-    }
+      }
 
     //rResult.invertedList.print();
     return rResult;

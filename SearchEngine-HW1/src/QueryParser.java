@@ -59,7 +59,7 @@ public class QueryParser {
         }*/
         else if (token.contains("#NEAR")) {
           String[] paras= token.split("/");
-          System.out.println(paras[1]);
+          //System.out.println(paras[1]);
           next = new QryopNear(Integer.parseInt(paras[1]));
         }
         if (isStart) {
@@ -80,7 +80,7 @@ public class QueryParser {
             oprator = new QryopOr();//set default to Or oprator.
           }
           if(analyzed[0].contains(".")){
-            String[] newTerm =  analyzed[0].split(".");
+            String[] newTerm =  analyzed[0].split("\\.");
             //if the query specifies the fields to run the query.
             oprator.args.add(new QryopTerm(newTerm[0],newTerm[1]));
           }else
