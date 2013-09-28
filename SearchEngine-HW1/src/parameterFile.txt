@@ -1,5 +1,5 @@
 queryFilePath=/home/jerry/Desktop/11-641/queriesOr.txt
 indexPath=/home/jerry/Desktop/11-641/HW1-tst/index
 retrievalAlgorithm=RankedBoolean
-outPath=/home/jerry/Desktop/11-641/queriesOrOut2.txt
+outPath=/home/jerry/Desktop/11-641/output/RankedOr.txt
 
