@@ -11,7 +11,6 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,15 +35,28 @@ public class QryEval {
    * The index file reader is accessible via a global variable. This isn't great programming style,
    * but the alternative is for every query operator to store or pass this value, which creates its
    * own headaches.
-   */
+   * Homework 2 notes.
+   * Also I introduce some other parameters here to show which method is used here.
+   * This modifies several parameters.
+   *   
+   * */
   public static IndexReader READER;
-
-  public static boolean isRanked = false;
+  
+  public static DocLengthStore dlc;
 
   private static Scanner queryReader = null;
-
+   
+  public static Map<String, String> params;
+  
+  
   //public static PrintStream out = null;
+  public static final int BM25= 0;
+  public static final int INDRI=1;
+  public static final int RANKEDBOOLEAN=2;
+  public static final int UNRANKEDBOOLEAN=3;
 
+  public static int model;
+  
   public static EnglishAnalyzerConfigurable analyzer = new EnglishAnalyzerConfigurable(
           Version.LUCENE_43);
   static {
@@ -67,8 +79,10 @@ public class QryEval {
       System.exit(1);
     }
 
-    // read in the parameter file; one parameter per line in format of key=value
-    Map<String, String> params = new HashMap<String, String>();
+    // read in the parameter file; 
+    //one parameter per line in format of key=value
+    //set it global for future scoring use.
+    params = new HashMap<String, String>();
     Scanner scan = new Scanner(new File(args[0]));
     String line = null;
     do {
@@ -85,7 +99,24 @@ public class QryEval {
 
     // open the index
     READER = DirectoryReader.open(FSDirectory.open(new File(params.get("indexPath"))));
-    isRanked = (params.get("retrievalAlgorithm").equals("RankedBoolean"));
+    
+    dlc= new DocLengthStore(READER);
+    
+    //determine the retrieveal model.
+    String rmodel = params.get("retrievalAlgorithm");
+    if(rmodel.equals("UnrankedBoolean"))
+       model= UNRANKEDBOOLEAN;
+    else if(rmodel.equals("RankedBoolean"))
+      model= RANKEDBOOLEAN;
+    else if(rmodel.equals("Indri"))
+      model= UNRANKEDBOOLEAN;
+    else if(rmodel.equals("BM25"))
+      model= BM25;
+    else{
+       System.out.println("Unsupported model.");
+       System.exit(0);
+    }
+    
     queryReader = new Scanner(new File(params.get("queryFilePath")));
     //out = new PrintStream(params.get("outPath"));
 
@@ -104,8 +135,8 @@ public class QryEval {
     
     QueryParser qp = new QueryParser();
       long start=System.currentTimeMillis();
-      int i = 0; do {
-      
+      int i = 0;
+      do {
       line = queryReader.nextLine(); 
       String[] term = line.split(":"); 
       String id = term[0]; 

@@ -7,6 +7,11 @@ import java.io.IOException;
 public class QryopTerm extends Qryop {
 
   private String term;
+  public String getField() {
+    return field;
+  }
+
+
   private String field;
 
   /* Constructors */

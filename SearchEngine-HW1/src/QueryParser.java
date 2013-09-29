@@ -5,6 +5,8 @@ import java.util.StringTokenizer;
  * This class will read the query string and analyze the query according to the operator specifies
  * It also use the method borrowed from other QryEval.java to better explain it.
  * 
+ * In homework 2, I must re-do the parser according to the different models in use.
+ * 
  * @author jerry
  * 
  */
@@ -17,7 +19,7 @@ public class QueryParser {
   }
 
   public QueryParser() {
-    
+
   }
 
   public String getQuery() {
@@ -53,13 +55,14 @@ public class QueryParser {
           next = new QryopSyn();
         } else if (token.equals("#OR")) {
           next = new QryopOr();
-          
-        }/*else if(token.equals("#SCORE")){
-          next = new QryopScore(); 
-        }*/
+        } else if (token.equals("#SUM")) {
+          next = new QryopSum();
+        } else if (token.equals("#WEIGHT")) {
+          next = new QryopWeight();
+        }/**/
         else if (token.contains("#NEAR")) {
-          String[] paras= token.split("/");
-          //System.out.println(paras[1]);
+          String[] paras = token.split("/");
+          // System.out.println(paras[1]);
           next = new QryopNear(Integer.parseInt(paras[1]));
         }
         if (isStart) {
@@ -74,18 +77,33 @@ public class QueryParser {
       } else if (token.equals(")")) {
         return oprator;
       } else {
+
+        if (oprator == null) {// set default according to different Operators
+          if (QryEval.model == QryEval.RANKEDBOOLEAN || QryEval.model == QryEval.UNRANKEDBOOLEAN)
+            oprator = new QryopOr();
+          if (QryEval.model == QryEval.BM25)
+            oprator = new QryopSum();
+          if (QryEval.model == QryEval.INDRI)
+            oprator = new QryopAnd();
+        }
+        //homework added here. Have a judge whether it is a QryopWeight
+        //In that case, we should added weight into corresponding positions.
+        //This increases the coupling, but decreases the 
+        if (oprator.getClass().equals(QryopWeight.class)) {
+          double score = Double.parseDouble(token);
+          ((QryopWeight) oprator).weight.add(score);
+          token = st.nextToken();
+        }
+
         String[] analyzed = QryEval.tokenizeQuery(token);
         if (analyzed.length >= 1) {
-          if (oprator == null) {
-            oprator = new QryopOr();//set default to Or oprator.
-          }
-          if(analyzed[0].contains(".")){
-            String[] newTerm =  analyzed[0].split("\\.");
-            //if the query specifies the fields to run the query.
-            oprator.args.add(new QryopTerm(newTerm[0],newTerm[1]));
-          }else
+          if (analyzed[0].contains(".")) {
+            String[] newTerm = analyzed[0].split("\\.");
+            // if the query specifies the fields to run the query.
+            oprator.args.add(new QryopTerm(newTerm[0], newTerm[1]));
+          } else
             oprator.args.add(new QryopTerm(analyzed[0]));
-         //System.out.println("I've add " + token); debug information.
+          // System.out.println("I've add " + token); debug information.
         }
         continue;
       }
@@ -95,21 +113,14 @@ public class QueryParser {
 
   }
 
-  /*public static void main(String args[]) {
-    QueryParser test = new QueryParser("test1 #AND(test2 test3) #OR(test4 test5) test6");
-    try {
-      Qryop ops = test.parse();
-      int i = 0;
-      System.out.println(ops.getClass());
-      while (i < ops.args.size()) {
-        System.out.println(ops.args.get(i).getClass());
-        i++;
-      }
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-  }*/
+  /*
+   * public static void main(String args[]) { QueryParser test = new
+   * QueryParser("test1 #AND(test2 test3) #OR(test4 test5) test6"); try { Qryop ops = test.parse();
+   * int i = 0; System.out.println(ops.getClass()); while (i < ops.args.size()) {
+   * System.out.println(ops.args.get(i).getClass()); i++; } } catch (IOException e) { // TODO
+   * Auto-generated catch block e.printStackTrace(); }
+   * 
+   * }
+   */
 
 }

@@ -9,6 +9,10 @@ public class QryopAnd extends Qryop {
   /**
    * It is convenient for the constructor to accept a variable number of arguments. Thus new
    * qryopAnd (arg1, arg2, arg3, ...).
+   * 
+   * Homewrok 2 Note:
+   * In this part, add the support for the INDRI and operator.
+   * The main differences are that INDRI takes the |1/q| as the weight sum.
    */
   public QryopAnd(Qryop... q) {
     for (int i = 0; i < q.length; i++)
@@ -54,15 +58,25 @@ public class QryopAnd extends Qryop {
         // If the rDoc document appears in both lists, keep it, otherwise discard it.
         if ((iDoc < iResult.docScores.scores.size())
             && (result.docScores.getDocid(rDoc) == iResult.docScores.getDocid(iDoc))) {
-          if(QryEval.isRanked){
+          if(QryEval.model==QryEval.RANKEDBOOLEAN){
+            //if it is ranked boolean then use the minimum one to fetch the score.
              result.docScores.setDocidScore(rDoc, Math.min(
                      result.docScores.getDocidScore(rDoc), 
                      iResult.docScores.getDocidScore(iDoc)));
-          }
+          }//TODO more method needs to be supported here.
+          else if(QryEval.model==QryEval.INDRI){
+             // sum log space
+             if(i==1){
+               // if it is the first one, put the scores in 1/n
+               //since the scores use log space, thus we should use |1/q| space.
+               result.docScores.setDocidScore(rDoc, (float) (result.docScores.getDocidScore(rDoc) * 1.0/this.args.size())); 
+             }
+             float score =  (float) (result.docScores.getDocidScore(rDoc) + 1.0 / this.args.size() * result.docScores.getDocidScore(iDoc));
+             iResult.docScores.setDocidScore(rDoc, score);
+          } 
           rDoc++;
           iDoc++;
         } else {
-          
           result.docScores.scores.remove(rDoc);
         }
       }

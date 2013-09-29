@@ -47,24 +47,32 @@ public class QryopOr extends Qryop {
           rIndex++;
 
         } else if (iDoc == rDoc) {
-          if (QryEval.isRanked) {
+          if (QryEval.model == QryEval.RANKEDBOOLEAN) {
             rResult.docScores.setDocidScore(
                     rIndex,
                     Math.max(rResult.docScores.getDocidScore(rIndex),
                             iResult.docScores.getDocidScore(iIndex)));
+          } else if (QryEval.model == QryEval.BM25) {
+            
+            // if some term doesn't appear in the list,
+            // then its score should not be changed, since its term frequency is zero
+            // and the score it gets in the list where it doesn't show up is also zero.
+            rResult.docScores.setDocidScore(rIndex, rResult.docScores.getDocidScore(rIndex)
+                    + iResult.docScores.getDocidScore(iIndex));
           }
+
           iIndex++;
           rIndex++;
         } else {
           rIndex++;
         }
       }
-        
-        if (iIndex < iResult.docScores.scores.size()) {
-          for (int j = iIndex; j < iResult.docScores.scores.size(); j++) {
-            rResult.docScores.scores.add(iResult.docScores.scores.get(j));
-          }
+
+      if (iIndex < iResult.docScores.scores.size()) {
+        for (int j = iIndex; j < iResult.docScores.scores.size(); j++) {
+          rResult.docScores.scores.add(iResult.docScores.scores.get(j));
         }
+      }
 
     }
     return rResult;
