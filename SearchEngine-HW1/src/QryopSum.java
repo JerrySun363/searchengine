@@ -14,12 +14,16 @@ public class QryopSum extends Qryop {
     sum = new QryopOr();
     for (int i = 0; i < args.size(); i++) {
       this.sum.args.add(q[i]);
-    }
+    } 
+      
   }
 
   @Override
   public QryResult evaluate() throws IOException {
-         QryResult result = sum.evaluate();
+    for (int i = 0; i < args.size(); i++) {
+      this.sum.args.add(this.args.get(i));
+    } 
+         QryResult result = sum.evaluate(true);
     return result;
   }
 

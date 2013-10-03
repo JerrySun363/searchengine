@@ -32,13 +32,21 @@ public class QueryParser {
 
   public Qryop parse() throws IOException {
     if (!query.startsWith("#")) {
+      String op ="";
+      if (QryEval.model == QryEval.RANKEDBOOLEAN || QryEval.model == QryEval.UNRANKEDBOOLEAN)
+         op="#OR"; 
+      if (QryEval.model == QryEval.BM25)
+         op="#SUM";
+      if (QryEval.model == QryEval.INDRI)
+        op="#AND";
+      
       if (!query.startsWith("(")) {
-        query = "#OR(" + query + ")";
+        query = op+"(" + query + ")";
       } else
-        query = "#OR" + query;
+        query = op + query;
     }
     StringTokenizer st = new StringTokenizer(query, " ()", true);
-
+    
     return parse(st, null, true);
 
   }
@@ -50,7 +58,10 @@ public class QueryParser {
       String token = st.nextToken();
       if (token.startsWith("#")) {
         if (token.equals("#AND")) {
-          next = new QryopAnd();
+          if(QryEval.model==QryEval.INDRI){
+            next = new QryopIndriAnd();
+          }else
+            next = new QryopAnd();
         } else if (token.equals("#SYN")) {
           next = new QryopSyn();
         } else if (token.equals("#OR")) {
@@ -71,7 +82,7 @@ public class QueryParser {
         }
       } else if (token.equals("(")) {
         Qryop test = parse(st, next, false);
-        if (!oprator.equals(test))
+        if (!oprator.equals(test) && test.args.size()>0)
           oprator.args.add(test);
 
       } else if (token.equals(")")) {
@@ -84,8 +95,10 @@ public class QueryParser {
           if (QryEval.model == QryEval.BM25)
             oprator = new QryopSum();
           if (QryEval.model == QryEval.INDRI)
-            oprator = new QryopAnd();
+            oprator = new QryopIndriAnd();
         }
+        if(token.equals(" "))
+          continue;
         //homework added here. Have a judge whether it is a QryopWeight
         //In that case, we should added weight into corresponding positions.
         //This increases the coupling, but decreases the 
@@ -94,16 +107,21 @@ public class QueryParser {
           ((QryopWeight) oprator).weight.add(score);
           token = st.nextToken();
         }
-
-        String[] analyzed = QryEval.tokenizeQuery(token);
+   
+        String[] newTerm = new String[2];
+        if (token.contains(".")){
+            newTerm = token.split("\\."); 
+        }else{
+            newTerm[0] = token;
+            newTerm[1] = "body";
+        }
+      
+        String[] analyzed = QryEval.tokenizeQuery(newTerm[0]);
         if (analyzed.length >= 1) {
-          if (analyzed[0].contains(".")) {
-            String[] newTerm = analyzed[0].split("\\.");
             // if the query specifies the fields to run the query.
-            oprator.args.add(new QryopTerm(newTerm[0], newTerm[1]));
-          } else
-            oprator.args.add(new QryopTerm(analyzed[0]));
-          // System.out.println("I've add " + token); debug information.
+            //System.out.println(analyzed[0]);
+            oprator.args.add(new QryopTerm(analyzed[0], newTerm[1]));
+            // System.out.println("I've add " + token); debug information.
         }
         continue;
       }

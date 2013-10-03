@@ -64,16 +64,6 @@ public class QryopAnd extends Qryop {
                      result.docScores.getDocidScore(rDoc), 
                      iResult.docScores.getDocidScore(iDoc)));
           }//TODO more method needs to be supported here.
-          else if(QryEval.model==QryEval.INDRI){
-             // sum log space
-             if(i==1){
-               // if it is the first one, put the scores in 1/n
-               //since the scores use log space, thus we should use |1/q| space.
-               result.docScores.setDocidScore(rDoc, (float) (result.docScores.getDocidScore(rDoc) * 1.0/this.args.size())); 
-             }
-             float score =  (float) (result.docScores.getDocidScore(rDoc) + 1.0 / this.args.size() * result.docScores.getDocidScore(iDoc));
-             iResult.docScores.setDocidScore(rDoc, score);
-          } 
           rDoc++;
           iDoc++;
         } else {

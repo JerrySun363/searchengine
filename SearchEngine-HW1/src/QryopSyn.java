@@ -5,7 +5,9 @@
 import java.io.IOException;
 
 public class QryopSyn extends Qryop {
-
+  /*It is never used*/
+  private String field;
+   
   /**
    * It is convenient for the constructor to accept a variable number of arguments. Thus new
    * qryopSyn (arg1, arg2, arg3, ...).
@@ -19,7 +21,7 @@ public class QryopSyn extends Qryop {
    * Evaluate the query operator.
    */
   public QryResult evaluate() throws IOException {
-
+    
     // Seed the result list by evaluating the first query argument.
     QryResult result = args.get(0).evaluate();
 

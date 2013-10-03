@@ -4,6 +4,15 @@ import java.util.Vector;
 
 public class QryopUw extends Qryop {
   private int distance;
+  private String field;
+  
+  public String getField() {
+    return field;
+  }
+
+  public void setField(String field) {
+    this.field = field;
+  }
 
   public int getDistance() {
     return distance;
@@ -28,6 +37,22 @@ public class QryopUw extends Qryop {
 
     InvList[] results = new InvList[args.size()];
     InvList toreturn = new InvList();
+    
+    //For effiency, use only the first's fields. With the assumption that
+    //all the fields are the same. Otherwise the query is illegal.
+    
+    if (args.get(0).getClass().equals(QryopTerm.class)
+            || args.get(0).getClass().equals(QryopNear.class)
+            || args.get(0).getClass().equals(QryopUw.class)) {
+      if (args.get(0).getClass().equals(QryopTerm.class)) {
+        this.setField(((QryopTerm) args.get(0)).getField());
+      } else if (args.get(0).getClass().equals(QryopNear.class)) {
+        this.setField(((QryopNear) args.get(0)).getField());
+      } else {
+        this.setField(((QryopUw) args.get(0)).getField());
+      }
+    }
+    
     for (int i = 0; i < args.size(); i++) {
       results[i] = (args.get(i).evaluate()).invertedList;
     }

@@ -5,7 +5,9 @@ import java.util.List;
 public class QryopWeight extends Qryop {
 
   public List<Double> weight;
-
+ 
+  private float totalScore;
+  
   public QryopWeight() {
     this.weight = new LinkedList<Double>();
   }
@@ -20,63 +22,126 @@ public class QryopWeight extends Qryop {
   @Override
   public QryResult evaluate() throws IOException {
     /*
-     * use the log to do this work This work similar with And operator only different that score
+     * use the log to do this work This work similar with OR operator only different that score
      * should be calculated with weight.
      */
+    if(args.size()==0){
+      return new QryResult(); 
+    }
+    
     double totalWeight = 0;
     for (int i = 0; i < weight.size(); i++) {
       totalWeight += weight.get(i);
     }
-    // Weight is used in INDRI operator.
-    // WEIGHT should only operate on Score Lists.
+    double accuWeight = 0;
+    /*
+     * Starts with the first operator to have the result.
+     */
+     
     Qryop impliedQryOp = new QryopScore(args.get(0));
-    QryResult result = impliedQryOp.evaluate();
+    QryResult rResult = impliedQryOp.evaluate();
+    accuWeight += weight.get(0);
+    // initlize it with weighted list.
+    for (int i = 0; i < rResult.docScores.scores.size(); i++) {
+      rResult.docScores.setDocidScore(i, (float) (rResult.docScores.getDocidScore(i) * accuWeight/totalWeight));
+      
+    }
+    totalScore +=rResult.defaultScore; 
 
     for (int i = 1; i < args.size(); i++) {
-      Qryop newOP = new QryopScore(args.get(1));
-      QryResult iResult = newOP.evaluate();
-      // The following should work similar to #AND operator.
-      // And it should only change the weight part. 
-      int rDoc = 0; /* Index of a document in result. */
-      int iDoc = 0; /* Index of a document in iResult. */
-
-      while (rDoc < result.docScores.scores.size()) {
-
-        // DIFFERENT RETRIEVAL MODELS IMPLEMENT THIS DIFFERENTLY.
-        // Unranked Boolean AND. Remove from the incremental result any documents that weren't
-        // returned by the i'th query argument.
-
-        // Ignore documents matched only by the i'th query arg.
-        while ((iDoc < iResult.docScores.scores.size())
-                && (result.docScores.getDocid(rDoc) > iResult.docScores.getDocid(iDoc))) {
-          iDoc++;
+      /* Starts the next operator */
+      impliedQryOp = new QryopScore(args.get(i));
+      QryResult iResult = impliedQryOp.evaluate();
+      /*new empty lists*/ 
+      QryResult toReturn = new QryResult();
+      
+      /* Combine the two result list into one. */
+      // result.invertedList.insert(iResult.invertedList);
+      int rIndex = 0; // Index of docs in the list
+      int iIndex = 0;
+      while (iIndex < iResult.docScores.scores.size() && rIndex < rResult.docScores.scores.size()) {
+        int iDoc = iResult.docScores.getDocid(iIndex);
+        int rDoc = rResult.docScores.getDocid(rIndex);
+        if (rDoc > iDoc) {
+          // here for some articles that not showing in previous other query results.
+          // apply default scores to all queries before.
+          // Different from sum because default score is not zero here.
+          //float score = (float) ((rResult.defaultScore * accuWeight + iResult.docScores
+          //        .getDocidScore(iIndex) * weight.get(i)) / totalWeight);
+          
+          float score = (float) ((totalScore+ iResult.docScores
+                          .getDocidScore(iIndex) * this.weight.get(i)) / totalWeight);
+                  
+          toReturn.docScores.add(iDoc, score);
+          
+          //System.out.println("here1"+score);
+          iIndex++;
+        } else if (iDoc == rDoc) {
+          // calculate the score here.
+         // System.out.println(rResult.docScores.getDocidScore(rIndex));
+         // System.out.println(iResult.docScores.getDocidScore(iIndex));
+          float score= (float) (rResult.docScores.getDocidScore(rIndex) + weight.get(i) / totalWeight * iResult.docScores.getDocidScore(iIndex)); 
+          //rResult.docScores.setDocidScore(rIndex,score);
+          //System.out.println("here2: "+score);
+          
+          toReturn.docScores.add(iDoc, score);
+          
+          iIndex++;
+          rIndex++;
+        } else {
+          // TODO:apply an default score to the current rIndex since it doesn't show the iResult
+          // list
+          // here for some articles that not showing in iResult but in rResult.
+          // apply default scores to this query.
+          // Different from sum because default score is not zero here.
+          float score = (float) (rResult.docScores.getDocidScore(rIndex) + iResult.defaultScore
+                  * weight.get(i)/totalWeight);  
+          //rResult.docScores.setDocidScore(
+          //        rIndex,score);
+          //System.out.println("here3:"+score);
+          toReturn.docScores.add(rDoc, score);
+          rIndex++;
         }
 
-        // If the rDoc document appears in both lists, keep it, otherwise discard it.
-        if ((iDoc < iResult.docScores.scores.size())
-                && (result.docScores.getDocid(rDoc) == iResult.docScores.getDocid(iDoc))) {
-          if (QryEval.model == QryEval.INDRI) {//this line should be omitted.
-            // sum log space
-            if (i == 1) {
-              // if it is the first one, put the scores in 1/n
-              // since the scores use log space, thus we should use wi/W to give weight.
-            result.docScores.setDocidScore(rDoc,
-                    (float) (result.docScores.getDocidScore(rDoc) * weight.get(0)/ totalWeight));
-            }
-            float score = (float) (result.docScores.getDocidScore(rDoc) + weight.get(i)/totalWeight
-                        * iResult.docScores.getDocidScore(iDoc));
-            result.docScores.setDocidScore(rDoc, score);
-          }
-          rDoc++;
-          iDoc++;
-        } else {
-          result.docScores.scores.remove(rDoc);
+      }
+      // for the original list
+      if (rIndex < rResult.docScores.scores.size()) {
+        for (int j = rIndex; j < rResult.docScores.scores.size(); j++) {
+          //rResult.docScores.setDocidScore(
+          //        j,
+          //        (float) (rResult.docScores.getDocidScore(j) + iResult.defaultScore
+          //                * weight.get(i)/totalWeight));
+         
+          toReturn.docScores.add(rResult.docScores.getDocid(j),(float) (rResult.docScores.getDocidScore(j) + iResult.defaultScore
+                  * weight.get(i)/totalWeight));
         }
       }
-    }
 
-    return result;
+      // for the new list
+      if (iIndex < iResult.docScores.scores.size()) {
+        for (int j = iIndex; j < iResult.docScores.scores.size(); j++) {
+          // here for some articles that not showing in previous other query results.
+          // apply default scores to all queries before.
+          // Different from sum because default score is not zero here.
+
+          //rResult.docScores.add(iResult.docScores.getDocid(j),
+          //        (float) ((totalScore + iResult.docScores.getDocidScore(j)
+          //                * weight.get(i)) / totalWeight));
+          toReturn.docScores.add(iResult.docScores.getDocid(j),
+                  (float) ((totalScore + iResult.docScores.getDocidScore(j)
+                          * weight.get(i)) / totalWeight));
+        }
+      }
+      // update score.
+      //rResult.defaultScore = (float) (rResult.defaultScore * accuWeight + iResult.defaultScore
+        //      * weight.get(i));
+      totalScore += iResult.defaultScore * weight.get(i);
+      accuWeight += weight.get(i);
+      //rResult.defaultScore = (float) (totalScore / accuWeight);
+      toReturn.defaultScore = (float) (totalScore / accuWeight);
+      rResult = toReturn;
+    }
+    return rResult;
 
   }
-
 }

@@ -18,6 +18,7 @@ public class QryopTerm extends Qryop {
   public QryopTerm(String t) {
     this.term = t;
     this.field = "body"; /* Default field if none is specified */
+    //modify this in hw2 to do the experiments
   }
 
   /* Constructor */

@@ -109,7 +109,7 @@ public class QryEval {
     else if(rmodel.equals("RankedBoolean"))
       model= RANKEDBOOLEAN;
     else if(rmodel.equals("Indri"))
-      model= UNRANKEDBOOLEAN;
+      model= INDRI;
     else if(rmodel.equals("BM25"))
       model= BM25;
     else{
@@ -134,8 +134,8 @@ public class QryEval {
     
     
     QueryParser qp = new QueryParser();
-      long start=System.currentTimeMillis();
-      int i = 0;
+      //long start=System.currentTimeMillis();
+      //int i = 0;
       do {
       line = queryReader.nextLine(); 
       String[] term = line.split(":"); 
@@ -146,7 +146,9 @@ public class QryEval {
       formatPrintResults(id, result);
       
       } while (queryReader.hasNext() );
-    
+      //long end = System.currentTimeMillis();
+      
+      //System.out.println("time elapsed: "+(end-start));
 
     /*String query = "#NEAR/800(asparagus broccoli)";
     qp.setQuery(query);
@@ -304,7 +306,7 @@ public class QryEval {
         // (i + 1), inner.getDocidScore(i));
         if(i == 100)
           break;//at most 100 output.
-        System.out.printf("%s Q0 %s %d %.1f run-1\n", id, getExternalDocid(inner.getDocid(i)), (i + 1),
+        System.out.printf("%s Q0 %s %d %.5f run-1\n", id, getExternalDocid(inner.getDocid(i)), (i + 1),
                 inner.getDocidScore(i));
       }
     }
@@ -370,4 +372,5 @@ public class QryEval {
     return tokens.toArray(new String[tokens.size()]);
   }
 
+  
 }

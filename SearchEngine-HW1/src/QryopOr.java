@@ -1,10 +1,6 @@
 import java.io.IOException;
 
 /**
- * 
- */
-
-/**
  * @author Jerry Sun This is the implementation of Or Operator. It simply refers to the And
  *         operator.
  * 
@@ -22,8 +18,11 @@ public class QryopOr extends Qryop {
       this.args.add(q[i]);
   }
 
-  @Override
   public QryResult evaluate() throws IOException {
+    return evaluate(false);
+  }
+
+  public QryResult evaluate(boolean isAnd) throws IOException {
     /*
      * Starts with the first operator to have the result.
      */
@@ -44,7 +43,7 @@ public class QryopOr extends Qryop {
         if (iDoc < rDoc) {
           rResult.docScores.scores.add(rIndex, iResult.docScores.scores.get(iIndex));
           iIndex++;
-          rIndex++;
+         //rIndex++;
 
         } else if (iDoc == rDoc) {
           if (QryEval.model == QryEval.RANKEDBOOLEAN) {
@@ -52,11 +51,13 @@ public class QryopOr extends Qryop {
                     rIndex,
                     Math.max(rResult.docScores.getDocidScore(rIndex),
                             iResult.docScores.getDocidScore(iIndex)));
-          } else if (QryEval.model == QryEval.BM25) {
-            
+          } else if (QryEval.model == QryEval.BM25 && isAnd) {
             // if some term doesn't appear in the list,
             // then its score should not be changed, since its term frequency is zero
             // and the score it gets in the list where it doesn't show up is also zero.
+            // this implements BM25's sum function.
+            // To distinguish from the BM25's OR (although not implemented here...)
+            // Add a boolean to distinguish that.
             rResult.docScores.setDocidScore(rIndex, rResult.docScores.getDocidScore(rIndex)
                     + iResult.docScores.getDocidScore(iIndex));
           }
