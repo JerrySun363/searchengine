@@ -54,9 +54,11 @@ public class QueryParser {
   public Qryop parse(StringTokenizer st, Qryop oprator, boolean isStart) throws IOException {
 
     Qryop next = null;
+    boolean isScore = true;
     while (st.hasMoreTokens()) {
       String token = st.nextToken();
       if (token.startsWith("#")) {
+        isScore = true;
         if (token.equals("#AND")) {
           if(QryEval.model==QryEval.INDRI){
             next = new QryopIndriAnd();
@@ -101,13 +103,16 @@ public class QueryParser {
           continue;
         //homework added here. Have a judge whether it is a QryopWeight
         //In that case, we should added weight into corresponding positions.
-        //This increases the coupling, but decreases the 
-        if (oprator.getClass().equals(QryopWeight.class)) {
-          double score = Double.parseDouble(token);
-          ((QryopWeight) oprator).weight.add(score);
-          token = st.nextToken();
+        //This increases the coupling, but decreases the
+        
+        if (oprator.getClass().equals(QryopWeight.class)&&isScore) {
+           double score = Double.parseDouble(token);
+           ((QryopWeight) oprator).weight.add(score);
+            isScore = false;
+            continue;
         }
-   
+        
+        isScore = true;
         String[] newTerm = new String[2];
         if (token.contains(".")){
             newTerm = token.split("\\."); 

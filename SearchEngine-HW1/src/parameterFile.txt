@@ -1,4 +1,4 @@
-queryFilePath=/home/jerry/Desktop/11-641/seq
+queryFilePath=/home/jerry/Desktop/11-641/queriesOr.txt
 indexPath=/home/jerry/Desktop/11-641/index
 retrievalAlgorithm=Indri
 outPath=/home/jerry/Desktop/11-641/output/RankedOr.txt
