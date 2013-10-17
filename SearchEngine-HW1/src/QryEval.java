@@ -34,31 +34,31 @@ public class QryEval {
   /**
    * The index file reader is accessible via a global variable. This isn't great programming style,
    * but the alternative is for every query operator to store or pass this value, which creates its
-   * own headaches.
-   * Homework 2 notes.
-   * Also I introduce some other parameters here to show which method is used here.
-   * This modifies several parameters.
+   * own headaches. Homework 2 notes. Also I introduce some other parameters here to show which
+   * method is used here. This modifies several parameters.
    * 
    * Homework 3 notes
-   *   
+   * 
    * */
   public static IndexReader READER;
-  
+
   public static DocLengthStore dlc;
 
   private static Scanner queryReader = null;
-   
+
   public static Map<String, String> params;
-  
-  
-  //public static PrintStream out = null;
-  public static final int BM25= 0;
-  public static final int INDRI=1;
-  public static final int RANKEDBOOLEAN=2;
-  public static final int UNRANKEDBOOLEAN=3;
+
+  // public static PrintStream out = null;
+  public static final int BM25 = 0;
+
+  public static final int INDRI = 1;
+
+  public static final int RANKEDBOOLEAN = 2;
+
+  public static final int UNRANKEDBOOLEAN = 3;
 
   public static int model;
-  
+
   public static EnglishAnalyzerConfigurable analyzer = new EnglishAnalyzerConfigurable(
           Version.LUCENE_43);
   static {
@@ -81,9 +81,9 @@ public class QryEval {
       System.exit(1);
     }
 
-    // read in the parameter file; 
-    //one parameter per line in format of key=value
-    //set it global for future scoring use.
+    // read in the parameter file;
+    // one parameter per line in format of key=value
+    // set it global for future scoring use.
     params = new HashMap<String, String>();
     Scanner scan = new Scanner(new File(args[0]));
     String line = null;
@@ -101,26 +101,26 @@ public class QryEval {
 
     // open the index
     READER = DirectoryReader.open(FSDirectory.open(new File(params.get("indexPath"))));
-    
-    dlc= new DocLengthStore(READER);
-    
-    //determine the retrieval model.
+
+    dlc = new DocLengthStore(READER);
+
+    // determine the retrieval model.
     String rmodel = params.get("retrievalAlgorithm");
-    if(rmodel.equals("UnrankedBoolean"))
-       model= UNRANKEDBOOLEAN;
-    else if(rmodel.equals("RankedBoolean"))
-      model= RANKEDBOOLEAN;
-    else if(rmodel.equals("Indri"))
-      model= INDRI;
-    else if(rmodel.equals("BM25"))
-      model= BM25;
-    else{
-       System.out.println("Unsupported model.");
-       System.exit(0);
+    if (rmodel.equals("UnrankedBoolean"))
+      model = UNRANKEDBOOLEAN;
+    else if (rmodel.equals("RankedBoolean"))
+      model = RANKEDBOOLEAN;
+    else if (rmodel.equals("Indri"))
+      model = INDRI;
+    else if (rmodel.equals("BM25"))
+      model = BM25;
+    else {
+      System.out.println("Unsupported model.");
+      System.exit(0);
     }
-    
+
     queryReader = new Scanner(new File(params.get("queryFilePath")));
-    //out = new PrintStream(params.get("outPath"));
+    // out = new PrintStream(params.get("outPath"));
 
     if (READER == null) {
       System.err.println(usage);
@@ -132,32 +132,33 @@ public class QryEval {
     //
     // Modify me so that you read queries from a file, parse it, and form the query tree
     // automatically.
-    //String[] newTerm =  "espn.sport".split(".");
-    
-    //homework 3- new operations added here.
+    // String[] newTerm = "espn.sport".split(".");
+
+    // homework 3- new operations added here.
     boolean isFB = (params.get("fb").equals("true"));
-    
+
     QueryParser qp = new QueryParser();
-      //long start=System.currentTimeMillis();
-      //int i = 0;
-      do {
-      line = queryReader.nextLine(); 
-      String[] term = line.split(":"); 
-      String id = term[0]; 
+    // long start=System.currentTimeMillis();
+    // int i = 0;
+    do {
+      line = queryReader.nextLine();
+      String[] term = line.split(":");
+      String id = term[0];
       String query = term[1];
-      qp.setQuery(query); 
+      qp.setQuery(query);
       QryResult result = qp.parse().evaluate();
       result.docScores = sortList(result.docScores);
-      if(isFB){
-         NewQueryExpansion qe = new NewQueryExpansion(query, result);
-         String newQuery = qe.expandedQuery();
-         System.out.println(id+":"+newQuery);
+      formatPrintResults(id, result);
+      
+      isFB=false;
+      if (isFB) {
+        QueryExpansion qe = new QueryExpansion(query, result);
+        String newQuery = qe.expandedQuery();
+        System.out.println(id + ":" + newQuery);
       }
+
       
-      //formatPrintResults(id, result);
-      
-      } while (queryReader.hasNext() );
-      
+    } while (queryReader.hasNext());
 
   }
 
@@ -198,16 +199,16 @@ public class QryEval {
   static void printResults(String queryName, QryResult result) throws IOException {
 
     System.out.println(queryName + ":  ");
-    //out.println(queryName + ":  ");
+    // out.println(queryName + ":  ");
     if (result.docScores.scores.size() < 1) {
       System.out.println("\tNo results.");
-      //out.println("\tNo results.");
+      // out.println("\tNo results.");
     } else {
       for (int i = 0; i < result.docScores.scores.size(); i++) {
         System.out.println("\t" + i + ":  " + getExternalDocid(result.docScores.getDocid(i)) + ", "
                 + result.docScores.getDocidScore(i));
-       // out.println("\t" + i + ":  " + getExternalDocid(result.docScores.getDocid(i)) + ", "
-                //+ result.docScores.getDocidScore(i));
+        // out.println("\t" + i + ":  " + getExternalDocid(result.docScores.getDocid(i)) + ", "
+        // + result.docScores.getDocidScore(i));
       }
     }
 
@@ -225,14 +226,14 @@ public class QryEval {
    * QueryID Q0 DocID Rank Score RunID
    * 
    * @param id
-   *        the id of the query
+   *          the id of the query
    * @param result
    *          Result object generated by {@link Qryop#evaluate()}.
    * @throws IOException
-   *
+   * 
    */
   static void formatPrintResults(String id, QryResult result) throws IOException {
-     //System.out.println("printing... Id:"+id);
+    // System.out.println("printing... Id:"+id);
     // QueryID Q0 DocID Rank Score RunID
     if (result.docScores.scores.size() < 1) {
       // System.out.println("\tNo results.");
@@ -246,10 +247,10 @@ public class QryEval {
         // QueryID Q0 DocID Rank Score RunID
         // System.out.printf("%s Q0 %s %d %.1f run-1\n", id, getExternalDocid(inner.getDocid(i)),
         // (i + 1), inner.getDocidScore(i));
-        if(i == 100)
-          break;//at most 100 output.
-        System.out.printf("%s Q0 %s %d %.5f run-1\n", id, getExternalDocid(inner.getDocid(i)), (i + 1),
-                inner.getDocidScore(i));
+        if (i == 100)
+          break;// at most 100 output.
+        System.out.printf("%s Q0 %s %d %f run-1\n", id, getExternalDocid(inner.getDocid(i)),
+                (i + 1), inner.getDocidScore(i));
       }
     }
 
@@ -257,7 +258,7 @@ public class QryEval {
 
   private static ScoreList sortList(ScoreList input) {
     ScoreList output = new ScoreList();
-    
+
     out: for (int i = 0; i < input.scores.size(); i++) {
       float score = input.getDocidScore(i);
       int id = input.getDocid(i);
@@ -265,23 +266,23 @@ public class QryEval {
       for (int j = 0; j < output.scores.size(); j++) {
         if (score > output.getDocidScore(j)) {
           output.scores.add(j, input.scores.get(i));
-          
-          if(output.scores.size()>100)
+
+          if (output.scores.size() > 100)
             output.scores.remove(100);
-          
+
           continue out;
         } else if (score == output.getDocidScore(j)) {
           if (id < output.getDocid(j)) {
             output.scores.add(j, input.scores.get(i));
-            if(output.scores.size()>100)
+            if (output.scores.size() > 100)
               output.scores.remove(100);
-            
+
             continue out;
           }
         }
       }
       output.scores.add(input.scores.get(i));
-      if(output.scores.size()>100)
+      if (output.scores.size() > 100)
         output.scores.remove(100);
     }
     return output;
@@ -314,5 +315,4 @@ public class QryEval {
     return tokens.toArray(new String[tokens.size()]);
   }
 
-  
 }

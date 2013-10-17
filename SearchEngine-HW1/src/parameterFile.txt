@@ -1,4 +1,4 @@
-queryFilePath=/home/jerry/Desktop/11-641/queriesOr.txt
+queryFilePath=/home/jerry/Desktop/11-641/expanded
 indexPath=/home/jerry/Desktop/11-641/index
 retrievalAlgorithm=Indri
 BM25:k_1=1.2
