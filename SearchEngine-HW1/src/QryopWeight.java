@@ -54,7 +54,7 @@ public class QryopWeight extends Qryop {
       QryResult iResult = impliedQryOp.evaluate();
       /*new empty lists*/ 
       QryResult toReturn = new QryResult();
-      
+
       /* Combine the two result list into one. */
       // result.invertedList.insert(iResult.invertedList);
       int rIndex = 0; // Index of docs in the list
@@ -66,24 +66,17 @@ public class QryopWeight extends Qryop {
           // here for some articles that not showing in previous other query results.
           // apply default scores to all queries before.
           // Different from sum because default score is not zero here.
-          //float score = (float) ((rResult.defaultScore * accuWeight + iResult.docScores
-          //        .getDocidScore(iIndex) * weight.get(i)) / totalWeight);
-          
+         
           float score = (float) ((totalScore+ iResult.docScores
                           .getDocidScore(iIndex) * this.weight.get(i)) / totalWeight);
                   
           toReturn.docScores.add(iDoc, score);
-          
-          //System.out.println("here1"+score);
+
           iIndex++;
         } else if (iDoc == rDoc) {
-          // calculate the score here.
-         // System.out.println(rResult.docScores.getDocidScore(rIndex));
-         // System.out.println(iResult.docScores.getDocidScore(iIndex));
+    
           float score= (float) (rResult.docScores.getDocidScore(rIndex) + weight.get(i) / totalWeight * iResult.docScores.getDocidScore(iIndex)); 
-          //rResult.docScores.setDocidScore(rIndex,score);
-          //System.out.println("here2: "+score);
-          
+        
           toReturn.docScores.add(iDoc, score);
           
           iIndex++;
@@ -96,9 +89,6 @@ public class QryopWeight extends Qryop {
           // Different from sum because default score is not zero here.
           float score = (float) (rResult.docScores.getDocidScore(rIndex) + iResult.defaultScore
                   * weight.get(i)/totalWeight);  
-          //rResult.docScores.setDocidScore(
-          //        rIndex,score);
-          //System.out.println("here3:"+score);
           toReturn.docScores.add(rDoc, score);
           rIndex++;
         }
@@ -107,12 +97,7 @@ public class QryopWeight extends Qryop {
       // for the original list
       if (rIndex < rResult.docScores.scores.size()) {
         for (int j = rIndex; j < rResult.docScores.scores.size(); j++) {
-          //rResult.docScores.setDocidScore(
-          //        j,
-          //        (float) (rResult.docScores.getDocidScore(j) + iResult.defaultScore
-          //                * weight.get(i)/totalWeight));
-         
-          toReturn.docScores.add(rResult.docScores.getDocid(j),(float) (rResult.docScores.getDocidScore(j) + iResult.defaultScore
+           toReturn.docScores.add(rResult.docScores.getDocid(j),(float) (rResult.docScores.getDocidScore(j) + iResult.defaultScore
                   * weight.get(i)/totalWeight));
         }
       }
@@ -120,24 +105,16 @@ public class QryopWeight extends Qryop {
       // for the new list
       if (iIndex < iResult.docScores.scores.size()) {
         for (int j = iIndex; j < iResult.docScores.scores.size(); j++) {
-          // here for some articles that not showing in previous other query results.
-          // apply default scores to all queries before.
-          // Different from sum because default score is not zero here.
-
-          //rResult.docScores.add(iResult.docScores.getDocid(j),
-          //        (float) ((totalScore + iResult.docScores.getDocidScore(j)
-          //                * weight.get(i)) / totalWeight));
+         
           toReturn.docScores.add(iResult.docScores.getDocid(j),
                   (float) ((totalScore + iResult.docScores.getDocidScore(j)
                           * weight.get(i)) / totalWeight));
         }
       }
-      // update score.
-      //rResult.defaultScore = (float) (rResult.defaultScore * accuWeight + iResult.defaultScore
-        //      * weight.get(i));
+     
       totalScore += iResult.defaultScore * weight.get(i);
       accuWeight += weight.get(i);
-      //rResult.defaultScore = (float) (totalScore / accuWeight);
+
       toReturn.defaultScore = (float) (totalScore / accuWeight);
       rResult = toReturn;
     }

@@ -38,6 +38,8 @@ public class QryEval {
    * Homework 2 notes.
    * Also I introduce some other parameters here to show which method is used here.
    * This modifies several parameters.
+   * 
+   * Homework 3 notes
    *   
    * */
   public static IndexReader READER;
@@ -102,7 +104,7 @@ public class QryEval {
     
     dlc= new DocLengthStore(READER);
     
-    //determine the retrieveal model.
+    //determine the retrieval model.
     String rmodel = params.get("retrievalAlgorithm");
     if(rmodel.equals("UnrankedBoolean"))
        model= UNRANKEDBOOLEAN;
@@ -132,6 +134,8 @@ public class QryEval {
     // automatically.
     //String[] newTerm =  "espn.sport".split(".");
     
+    //homework 3- new operations added here.
+    boolean isFB = (params.get("fb").equals("true"));
     
     QueryParser qp = new QueryParser();
       //long start=System.currentTimeMillis();
@@ -143,79 +147,17 @@ public class QryEval {
       String query = term[1];
       qp.setQuery(query); 
       QryResult result = qp.parse().evaluate();
-      formatPrintResults(id, result);
+      result.docScores = sortList(result.docScores);
+      if(isFB){
+         NewQueryExpansion qe = new NewQueryExpansion(query, result);
+         String newQuery = qe.expandedQuery();
+         System.out.println(id+":"+newQuery);
+      }
+      
+      //formatPrintResults(id, result);
       
       } while (queryReader.hasNext() );
-      //long end = System.currentTimeMillis();
       
-      //System.out.println("time elapsed: "+(end-start));
-
-    /*String query = "#NEAR/800(asparagus broccoli)";
-    qp.setQuery(query);
-    Qryop test0 = qp.parse();
-    //formatPrintResults("test0", test0.evaluate());
-    printResults("test0", new QryopScore(test0).evaluate());
-    out.println("------------------------------------");
-
-    query = "#AND(asparagus broccoli)";
-    qp.setQuery(query); 
-    Qryop test = qp.parse();
-    formatPrintResults("test1", test.evaluate());
-    printResults("test1", test.evaluate());
-    out.println("------------------------------------");
-    
-    qp.setQuery("#AND(asparagus)");
-    Qryop test2 = qp.parse();
-    //formatPrintResults("test2", test2.evaluate());
-    printResults("test2", test2.evaluate());
-    
-    out.println("------------------------------------");
-    qp.setQuery("#AND(broccoli)");
-    Qryop test3 = qp.parse();
-    //formatPrintResults("test3", test3.evaluate());
-    printResults("test3", test3.evaluate());*/
-    //System.out.println(System.currentTimeMillis()-start);
-    
-    //out.flush();
-    //out.close();
-    /*
-     * Used for debug test.evaluate();
-     * 
-     * int i=0; System.out.println(test.getClass()); while(i<test.args.size()){
-     * System.out.println(test.args.get(i).getClass()); i++; }
-     * printResults("#AND (aparagus broccoli cauliflower #SYN(peapods peas))", test.evaluate());
-     */
-
-    /*
-     * printResults("asparagus", (new QryopScore(new
-     * QryopTerm(tokenizeQuery("asparagus")[0]))).evaluate());
-     */
-    /*
-     * formatPrintResults("test", (new QryopScore(new
-     * QryopTerm(tokenizeQuery("asparagus")[0]))).evaluate()); /* printResults("broccoli", (new
-     * QryopScore( new QryopTerm(tokenizeQuery("broccoli")[0]))).evaluate());
-     * 
-     * printResults("cauliflower", (new QryopScore( new
-     * QryopTerm(tokenizeQuery("cauliflower")[0]))).evaluate());
-     * 
-     * printResults("pea", (new QryopScore( new QryopTerm(tokenizeQuery("pea")[0]))).evaluate());
-     * 
-     * printResults("peas", (new QryopScore( new QryopTerm(tokenizeQuery("peas")[0]))).evaluate());
-     * 
-     * printResults("peapods", (new QryopScore( new
-     * QryopTerm(tokenizeQuery("peapods")[0]))).evaluate());
-     * 
-     * printResults("#AND (broccoli cauliflower)", (new QryopAnd( new
-     * QryopTerm(tokenizeQuery("broccoli")[0]), new
-     * QryopTerm(tokenizeQuery("cauliflower")[0]))).evaluate());
-     * 
-     * printResults("#AND (peas peapods)", (new QryopAnd( new QryopTerm(tokenizeQuery("peas")[0]),
-     * new QryopTerm(tokenizeQuery("peapods")[0]))).evaluate());
-     * 
-     * printResults("#SCORE (#SCORE (#AND (peas peapods)))", (new QryopScore( (new QryopScore( (new
-     * QryopAnd( new QryopTerm(tokenizeQuery("peas")[0]), new
-     * QryopTerm(tokenizeQuery("peapods")[0]))))))).evaluate());
-     */
 
   }
 
