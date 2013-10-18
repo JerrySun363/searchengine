@@ -77,6 +77,10 @@ public class QueryParser {
           String[] paras = token.split("/");
           // System.out.println(paras[1]);
           next = new QryopNear(Integer.parseInt(paras[1]));
+        }else if (token.contains("#UW")) {
+          String[] paras = token.split("/");
+          // System.out.println(paras[1]);
+          next = new QryopUw(Integer.parseInt(paras[1]));
         }
         if (isStart) {
           oprator = next;
@@ -115,7 +119,12 @@ public class QueryParser {
         isScore = true;
         String[] newTerm = new String[2];
         if (token.contains(".")){
-            newTerm = token.split("\\."); 
+            newTerm = token.split("\\.");
+            if(!newTerm[1].equals("body")&&!newTerm[1].equals("keywords")&&!newTerm[1].equals("inlink")&&!newTerm[1].equals("title")
+                    &&!newTerm[1].equals("url")){
+              newTerm[0] = token;
+              newTerm[1] = "body";
+            }
         }else{
             newTerm[0] = token;
             newTerm[1] = "body";

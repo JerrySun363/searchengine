@@ -11,6 +11,7 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -136,7 +137,11 @@ public class QryEval {
 
     // homework 3- new operations added here.
     boolean isFB = (params.get("fb").equals("true"));
-
+    PrintStream out= null;
+    if(isFB){
+      out = new PrintStream(params.get("fbFile"));
+    }
+    
     QueryParser qp = new QueryParser();
     // long start=System.currentTimeMillis();
     // int i = 0;
@@ -146,20 +151,26 @@ public class QryEval {
       String id = term[0];
       String query = term[1];
       qp.setQuery(query);
-      QryResult result = qp.parse().evaluate();
+       QryResult result = qp.parse().evaluate();
       result.docScores = sortList(result.docScores);
       formatPrintResults(id, result);
-      
-      isFB=false;
+     // System.out.println("--------------------------------------");
       if (isFB) {
         QueryExpansion qe = new QueryExpansion(query, result);
         String newQuery = qe.expandedQuery();
-        System.out.println(id + ":" + newQuery);
+        out.println(id + ":" + newQuery);
+        //System.out.println(id + ":" + newQuery);
+        //qp.setQuery(newQuery);
+        //QryResult newresult = qp.parse().evaluate();
+        //formatPrintResults(id, newresult);
       }
 
       
     } while (queryReader.hasNext());
-
+     if(out!=null){
+      out.flush();
+      out.close();
+     }
   }
 
   /**

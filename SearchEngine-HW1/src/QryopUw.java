@@ -4,8 +4,9 @@ import java.util.Vector;
 
 public class QryopUw extends Qryop {
   private int distance;
+
   private String field;
-  
+
   public String getField() {
     return field;
   }
@@ -37,10 +38,10 @@ public class QryopUw extends Qryop {
 
     InvList[] results = new InvList[args.size()];
     InvList toreturn = new InvList();
-    
-    //For effiency, use only the first's fields. With the assumption that
-    //all the fields are the same. Otherwise the query is illegal.
-    
+
+    // For effiency, use only the first's fields. With the assumption that
+    // all the fields are the same. Otherwise the query is illegal.
+
     if (args.get(0).getClass().equals(QryopTerm.class)
             || args.get(0).getClass().equals(QryopNear.class)
             || args.get(0).getClass().equals(QryopUw.class)) {
@@ -52,13 +53,13 @@ public class QryopUw extends Qryop {
         this.setField(((QryopUw) args.get(0)).getField());
       }
     }
-    
+
     for (int i = 0; i < args.size(); i++) {
       results[i] = (args.get(i).evaluate()).invertedList;
     }
-    int[] pointers = new int[args.size()];//pointers to record each position in postings
-    int maxID = -1;     //max doc ID
-    int index = 0;      //
+    int[] pointers = new int[args.size()];// pointers to record each position in postings
+    int maxID = -1; // max doc ID
+    int index = 0; //
 
     boolean sameDoc = false;
 
@@ -85,7 +86,6 @@ public class QryopUw extends Qryop {
           // Thus now we can compare the term locations of them
           if (index == args.size() - 1) {
             sameDoc = true;
-
           } else {
             index = (index + 1) % args.size();
           }
@@ -104,47 +104,60 @@ public class QryopUw extends Qryop {
         myPositions.add(results[i].postings.get(pointers[i]).positions);
       }
 
-      boolean hasMore = true;
+      sameDoc = false;
+      for (int j = 0; j < pointers.length; j++) {
+        pointers[j]++;
+      }
+
       int maxPos = myPositions.get(0).get(0);
       int minPos = myPositions.get(0).get(0);
       int maxIndex = 0;
       int minIndex = 0;
 
-      InvList.DocPosting matches = toreturn.new DocPosting(maxID);
+      // InvList.DocPosting matches = toreturn.new DocPosting(maxID, null);
+      ArrayList<Integer> matchedArray = new ArrayList<Integer>();
 
       outer: while (true) {
+        minPos = maxPos;
         for (int x = 0; x < myPositions.size(); x++) {
           if (pos[x] >= myPositions.get(x).size()) {
             // one document has reached its end.
             // we should break this loop
             break outer;
           }
-
           int thisPos = myPositions.get(x).get(pos[x]);
-
           if (thisPos > maxPos) {
             maxPos = thisPos;
             maxIndex = x;
-          } else if (thisPos < minPos) {
+            
+          } else if (thisPos <= minPos) {
             minPos = thisPos;
             minIndex = x;
           }
         }
-        if (maxPos - minPos <= this.distance) {
-          // we got a match here.
-          matches.positions.add(maxPos);
 
-          for (int x = 0; x < pos.length; x++) {
-            pos[x]++;// each should increment by 1
+        if (maxPos - minPos < this.distance) {
+          // we got a match here.
+          matchedArray.add(maxPos);
+          // matches.positions.add(maxPos);
+          for (int t = 0; t < pos.length; t++) {
+            pos[t]++;// each should increment by 1
           }
         } else {
-          /*
-           * if we don't get a match here. pos[minPos]++ to let it move forward
+          /* if we don't get a match here. pos[minIndex]++ to let it move forward
            */
-          pos[minPos]++;
+          pos[minIndex]++;
+          
         }
       }
-      if (!matches.positions.isEmpty()) {
+
+      if (!matchedArray.isEmpty()) {
+        int[] poses = new int[matchedArray.size()];
+        for (int i = 0; i < matchedArray.size(); i++) {
+          poses[i] = matchedArray.get(i);
+        }
+
+        InvList.DocPosting matches = toreturn.new DocPosting(maxID, poses);
         matches.tf = matches.positions.size();
         toreturn.postings.add(matches);
         toreturn.df++;
@@ -155,6 +168,9 @@ public class QryopUw extends Qryop {
 
     QryResult result = new QryResult();
     result.invertedList = toreturn;
+    System.out.println(result.invertedList.ctf);
+    System.out.println(result.invertedList.df);
+    
     return result;
   }
 

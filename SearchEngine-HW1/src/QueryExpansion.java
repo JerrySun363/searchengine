@@ -79,12 +79,12 @@ public class QueryExpansion {
           double newscore = dictionary.get(term) + (score - defaultScore.get(term))
                   * Math.exp(this.qryResult.docScores.getDocidScore(i));
           dictionary.put(term, newscore);
-
         } else {
           
           dictionary.put(term, score* Math.exp(this.qryResult.docScores.getDocidScore(i)));
           // calculate default score. The default score for the same term is
           // same across the whole corpus.
+         
           double avg_len = QryEval.READER.getSumTotalTermFreq("body")
                   / (double) QryEval.READER.getDocCount("body");
           double defaultScore = fbMu * mle / (fbMu + avg_len);
@@ -111,7 +111,7 @@ public class QueryExpansion {
     //
     String latter = "#WEIGHT(";
     for (int i = 0; i < topTerms.size(); i++) {
-      latter += topTerms.get(i).getScore() + " " + topTerms.get(i).getTerm() + " ";
+      latter += (float)topTerms.get(i).getScore() + " " + topTerms.get(i).getTerm() + " ";
     }
     latter += ")";
     if(!query.startsWith("#")){
@@ -142,7 +142,7 @@ public class QueryExpansion {
       }
     }
     // end of loop, the largest index.
-    list.addLast(myTerm);
+    list.add(myTerm);
     // limit the size to sizeLimit
     if (list.size() > sizeLimit) {
       list.removeLast();
