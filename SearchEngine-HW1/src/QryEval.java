@@ -119,8 +119,11 @@ public class QryEval {
       System.out.println("Unsupported model.");
       System.exit(0);
     }
-
-    queryReader = new Scanner(new File(params.get("queryFilePath")));
+    
+    //TODO: LOOP
+    //int i = 2;
+   // while(i<=10){
+    queryReader = new Scanner(new File(params.get("queryFilePath")));//+i
     // out = new PrintStream(params.get("outPath"));
 
     if (READER == null) {
@@ -138,12 +141,14 @@ public class QryEval {
     // homework 3- new operations added here.
     boolean isFB = (params.get("fb").equals("true"));
     PrintStream out= null;
+                
+    //params.put("fbTerms", ""+i);
     if(isFB){
-      out = new PrintStream(params.get("fbFile"));
+      out = new PrintStream(params.get("fbFile"));//+i
     }
     
     QueryParser qp = new QueryParser();
-    // long start=System.currentTimeMillis();
+    long start=System.currentTimeMillis();
     // int i = 0;
     do {
       line = queryReader.nextLine();
@@ -151,26 +156,30 @@ public class QryEval {
       String id = term[0];
       String query = term[1];
       qp.setQuery(query);
-       QryResult result = qp.parse().evaluate();
+      QryResult result = qp.parse().evaluate();
       result.docScores = sortList(result.docScores);
       formatPrintResults(id, result);
-     // System.out.println("--------------------------------------");
       if (isFB) {
         QueryExpansion qe = new QueryExpansion(query, result);
         String newQuery = qe.expandedQuery();
         out.println(id + ":" + newQuery);
-        //System.out.println(id + ":" + newQuery);
+        System.out.println(id + ":" + newQuery);
         //qp.setQuery(newQuery);
         //QryResult newresult = qp.parse().evaluate();
         //formatPrintResults(id, newresult);
       }
-
+ 
       
     } while (queryReader.hasNext());
+      System.out.println("----------"+(System.currentTimeMillis()-start)+"----------------------------");
+      queryReader.close();
      if(out!=null){
       out.flush();
       out.close();
      }
+     
+       //i+=2;
+    //}
   }
 
   /**

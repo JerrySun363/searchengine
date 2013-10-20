@@ -1,4 +1,4 @@
-queryFilePath=/home/jerry/Desktop/11-641/query42.txt
+queryFilePath=/home/jerry/Desktop/11-641/output/seq
 indexPath=/home/jerry/Desktop/11-641/index
 retrievalAlgorithm=Indri
 BM25:k_1=1.2
@@ -8,8 +8,8 @@ Indri:mu=2500
 Indri:lambda=0.4
 Indri:smoothing=ctf
 fb=false
-fbDocs=10
-fbTerms=10
+fbDocs=30
+fbTerms=50
 fbMu=0
 fbOrigWeight=0.5
-fbFile=/home/jerry/Desktop/11-641/expanded2
+fbFile=/home/jerry/Desktop/11-641/output/seq

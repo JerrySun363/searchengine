@@ -64,7 +64,12 @@ public class QryopUw extends Qryop {
     boolean sameDoc = false;
 
     reachEnd: while (true) {
+   
       while (sameDoc != true) {
+           //System.out.println(pointers[index]);
+           if(pointers[index]>=results[index].postings.size()){
+             break reachEnd;
+           }
         if (results[index].postings.get(pointers[index]).docid > maxID) {
           /*
            * if it is larger than the current MAX DOC ID, it should be the new current max, and
@@ -97,6 +102,11 @@ public class QryopUw extends Qryop {
        * compare the term frequencies in these docs.
        */
       // initialize all the docs to at their first pos in the queue.
+      
+      //below used for debug. 
+      /*if(maxID==575986){
+        System.out.println("bug files");
+      }*/
       int pos[] = new int[args.size()];
       ArrayList<Vector<Integer>> myPositions = new ArrayList<Vector<Integer>>();
       // put all the positions in the lists
@@ -135,14 +145,20 @@ public class QryopUw extends Qryop {
             minIndex = x;
           }
         }
+        
 
         if (maxPos - minPos < this.distance) {
           // we got a match here.
-          matchedArray.add(maxPos);
+          matchedArray.add(minPos);
           // matches.positions.add(maxPos);
+          //System.out.println("I have a match in doc "+maxID+" postion to match is "+minPos+"  "+maxPos);
           for (int t = 0; t < pos.length; t++) {
             pos[t]++;// each should increment by 1
           }
+          if (pos[maxIndex] < myPositions.get(maxIndex).size()) {
+              maxPos = myPositions.get(maxIndex).get(pos[maxIndex]);
+          }
+          
         } else {
           /* if we don't get a match here. pos[minIndex]++ to let it move forward
            */
@@ -168,8 +184,8 @@ public class QryopUw extends Qryop {
 
     QryResult result = new QryResult();
     result.invertedList = toreturn;
-    System.out.println(result.invertedList.ctf);
-    System.out.println(result.invertedList.df);
+    //System.out.println(result.invertedList.ctf);
+    //System.out.println(result.invertedList.df);
     
     return result;
   }
